@@ -9,6 +9,9 @@ int distance;
 int ledPin1 = 8;
 int ledPin2 = 7;
 
+// Stage Lights
+int stageLight1 = 6;
+int stageLight2 = 5;
 
 // Motor stuff
 int motor1Pin1 = 53; // Brown
@@ -27,9 +30,10 @@ int motor3Pin3 = 33; // Orange
 int motor3Pin4 = 31; // Yellow
 
 
+
 int motorSpeed = 1000; //1200; // variable to set stepper speed
 int count = 0; // count of steps made
-int countsperrev = 512; //2048; // number of steps per full revolution
+int countsperrev = 2048; //2048; // number of steps per full revolution
 int lookup[8] = {B01000, B01100, B00100, B00110, B00010, B00011, B00001, B01001};
 int act = 0;
 
@@ -41,6 +45,10 @@ void setup() {
   // setup light pins
   pinMode(ledPin1, OUTPUT);
   pinMode(ledPin2, OUTPUT);
+  
+  // setup stage light pins
+  pinMode(stageLight1, OUTPUT);
+  pinMode(stageLight2, OUTPUT);
   
   // declare the motor pins as outputs
   pinMode(motor1Pin1, OUTPUT);
@@ -63,37 +71,41 @@ void setup() {
 
 void loop() {
   
-//  return;
-  
   // Clear the trig pin
   digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
+//  delayMicroseconds(2);
   
   // Clear the light pins
   digitalWrite(ledPin1, LOW);
+
+  if ( 0 == act ) {
   
-  // Sets the trig pin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
+    // Sets the trig pin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    
+    // Reads the echo pin, returns the sound wave travel tie in microseconds
+    duration = pulseIn(echoPin, HIGH);
+    
+    distance = duration * 0.034 / 2;
   
-  // Reads the echo pin, returns the sound wave travel tie in microseconds
-  duration = pulseIn(echoPin, HIGH);
+    Serial.print("Distance (cm): ");
+    Serial.println(distance);
+
+  }
   
-  distance = duration * 0.034 / 2;
-  
-  Serial.print("Distance (cm): ");
-  Serial.println(distance);
-  
-  if ( distance >= 0 && distance < 200 ) {
-    motorSpeed = ( 800 + ( distance * 25 ) < 1000 ? 1000 : 1000 + ( distance * 25 ) );
+  /* if ( distance >= 0 && distance < 200 ) {
+    motorSpeed = ( 1100 + ( distance * 25 ) < 1100 ? 1100 : 1100 + ( distance * 25 ) );
     Serial.print("Distance detected: ");
     Serial.println(distance);
     Serial.print("Speed set: ");
     Serial.println(motorSpeed);
   } else {
     Serial.println("No proximity");
-  }
+  } */
+
+  
   
 //  return;
   
@@ -105,30 +117,64 @@ void loop() {
   if(act == 1) {
     digitalWrite(ledPin1, HIGH);
     digitalWrite(ledPin2, HIGH);
-    if(count < countsperrev ) {
-      clockwise(3);
+
+    Serial.print("ACT 1: ");
+    
+    if(count < countsperrev && 1 == 1 ) {
+      
+      digitalWrite(stageLight1, HIGH);
+      
+      if ( ( count % 2) == 0 ) {
+        clockwise(3);
+      }
             anticlockwise(2);
 
       clockwise(1);
+
+      Serial.println("Clockwise");
       
     } else if(count == countsperrev * 2) {
+
+      digitalWrite(stageLight1, LOW);
+      digitalWrite(stageLight2, LOW);
+      
       digitalWrite(ledPin1, LOW);
       digitalWrite(ledPin2, LOW);
       count = 0;
       act = 0;
+
+      Serial.println("Rest");
+      
     } else {
-      anticlockwise(3);
+
+      digitalWrite(stageLight2, HIGH);
+      
+      if ( ( count % 2) == 0 ) {
+        anticlockwise(3);
+      }
             clockwise(2);
 
       anticlockwise(1);
       
+
+      Serial.println("Anticlockwise");
       
       //clockwise(1);
       //clockwise(2);
       //clockwise(3);
     }
     count++;
+    
+  } else if (act == 2) {
+    
+    
+    
   }
+
+  Serial.print( "Step: " );
+  Serial.print( count );
+  Serial.print( " / " );
+  Serial.println( countsperrev );
  
 }
 
